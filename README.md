@@ -27,7 +27,7 @@ That's a lot of buzzwords - here's an example problem that Scaly solves:
 Your code might look something like this:
 
 ```javascript
-const db = /* ... */
+const db = /* ... */;
 const redis = /* ... */;
 const lru = new LRU({ttl: 10 /*seconds*/});
 
@@ -103,7 +103,7 @@ Scaly helps alleviate these issues:
 ```javascript
 const scaly = require('scaly');
 
-const db = /* ... */
+const db = /* ... */;
 const redis = /* ... */;
 const lru = new LRU({ttl: 10 /*seconds*/});
 
