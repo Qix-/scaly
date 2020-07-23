@@ -1,6 +1,6 @@
 {
   "name": "scaly",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Minimalistic, composable cache and database layering inspired by CPU caches",
   "main": "index.js",
   "repository": "qix-/scaly",
