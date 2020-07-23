@@ -175,6 +175,7 @@ So, what's happening here?
   API methods must resolve or error at some point**.
 - If the layer method wishes to raise a **recoverable or user error**, it should `yield err;` (where
   `err` is anything your application needs - a string, an `Error` object, or something else).
+  **The function will not resume after the yield expression**, effectively acting like a `throw` statement.
 - If the layer method wishes to raise an **unrecoverable/exceptional error**, it should `throw`.
   This should be reserved for unrecoverable (e.g. connection lost, bad DB credentials, etc.) errors.
 
