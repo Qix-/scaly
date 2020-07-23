@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Minimalistic, composable cache and database layering inspired by CPU caches",
   "main": "index.js",
+  "repository": "qix-/scaly",
   "files": [
     "index.js",
     "LICENSE"
