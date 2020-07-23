@@ -144,11 +144,11 @@ try {
 		Calling this again within the hour (but after 10 seconds) will hit the LRU, and then Redis.
 		Calling this again within 10 seconds will only hit the LRU.
 	*/
-	const [ok, firstName] = await DB.getFirstNameByEid(1234);
+	const [ok, result] = await DB.getFirstNameByEid(1234);
 	if (ok) {
-		console.log('Hello,', firstName);
+		console.log('Hello,', result);
 	} else {
-		console.error('Invalid EID:', firstName); // firstName holds the error result.
+		console.error('Invalid EID:', result); // `result` holds the error result returned by the mongoLayer
 	}
 } catch (err) {
 	console.error('internal error:', err.stack);
