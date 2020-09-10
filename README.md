@@ -128,11 +128,11 @@ const memcacheLayer = {
 	}
 }
 
-export default scaly(
+export default scaly([
 	memcacheLayer, // Hit LRU first ...
 	redisLayer,    // ... followed by Redis ...
 	mongoLayer     // ... followed by MongoDB.
-);
+]);
 ```
 
 ```javascript
