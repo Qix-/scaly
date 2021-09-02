@@ -3,13 +3,15 @@
   "version": "0.1.2",
   "description": "Minimalistic, composable cache and database layering inspired by CPU caches",
   "main": "index.js",
+  "types": "index.d.ts",
   "repository": "qix-/scaly",
   "files": [
     "index.js",
+    "index.d.ts",
     "LICENSE"
   ],
   "scripts": {
-    "test": "best -v -I test.js && xo"
+    "test": "best -v -I test.js && tsd && xo"
   },
   "keywords": [
     "cache",
@@ -30,6 +32,7 @@
   "license": "MIT",
   "devDependencies": {
     "@zeit/best": "0.7.3",
+    "tsd": "0.17.0",
     "xo": "0.32.1"
   }
 }

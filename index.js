@@ -1,4 +1,4 @@
-module.exports = layers => {
+module.exports = (...layers) => {
 	if (!Array.isArray(layers)) {
 		throw new TypeError('layers must be an array');
 	}

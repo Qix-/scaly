@@ -1,6 +1,7 @@
 /*
 	NOTE to any curious readers:
-The "layers" in this file are for testing purposes only.
+
+	The "layers" in this file are for testing purposes only.
 	Not only should you not use them yourself, but they aren't
 	necessarily built in the most realistic way.
 
@@ -157,10 +158,10 @@ function makeMemoryCache(ttl) {
 
 const makeDB = memoryCacheTTL => {
 	// Order matters!
-	return scaly([
+	return scaly(
 		makeMemoryCache(memoryCacheTTL || 1),
 		makePersistentDB()
-	]);
+	);
 };
 
 exports.createUser = async () => {

@@ -128,11 +128,11 @@ const memcacheLayer = {
 	}
 }
 
-export default scaly([
+export default scaly(
 	memcacheLayer, // Hit LRU first ...
 	redisLayer,    // ... followed by Redis ...
 	mongoLayer     // ... followed by MongoDB.
-]);
+);
 ```
 
 ```javascript
@@ -179,7 +179,7 @@ So, what's happening here?
 - If the layer method wishes to raise an **unrecoverable/exceptional error**, it should `throw`.
   This should be reserved for unrecoverable (e.g. connection lost, bad DB credentials, etc.) errors.
 
-`scaly([layer1, layer2, layerN])` returns a new object with all of the API methods between all layers.
+`scaly(layer1, layer2, layerN)` returns a new object with all of the API methods between all layers.
 This means that if `layer1` has a `getFoo()` API method, and `layer2` has a `getBar()` method, the
 resulting object will have both `getFoo()` and `getBar()` methods.
 
