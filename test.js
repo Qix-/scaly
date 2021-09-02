@@ -16,6 +16,7 @@
 	return e.g. arrays (like we do here).
 */
 const assert = require('assert').strict;
+
 const equal = assert.deepEqual;
 
 const scaly = require('.');
@@ -25,7 +26,7 @@ function makePersistentDB() {
 		userCount: 0,
 		sessionCount: 0,
 		users: {},
-		sessions: {}
+		sessions: {},
 	};
 
 	return {
@@ -89,7 +90,7 @@ function makePersistentDB() {
 
 			delete db.users[uid];
 			return [['pdb'], true];
-		}
+		},
 	};
 }
 
@@ -152,23 +153,22 @@ function makeMemoryCache(ttl) {
 			const [trace, uid] = yield;
 			store(key, uid);
 			trace.push('mc');
-		}
+		},
 	};
 }
 
-const makeDB = memoryCacheTTL => {
+const makeDB = memoryCacheTTL =>
 	// Order matters!
-	return scaly(
+	scaly(
 		makeMemoryCache(memoryCacheTTL || 1),
-		makePersistentDB()
+		makePersistentDB(),
 	);
-};
 
 exports.createUser = async () => {
 	const db = makeDB();
 	equal(
 		await db.addUser('qix'),
-		[true, [['pdb'], 0]]
+		[true, [['pdb'], 0]],
 	);
 };
 
@@ -176,7 +176,7 @@ exports.errorCreateUserEmpty = async () => {
 	const db = makeDB();
 	equal(
 		await db.addUser(''),
-		[false, [['pdb'], 'invalid username (expected non-blank string)']]
+		[false, [['pdb'], 'invalid username (expected non-blank string)']],
 	);
 };
 
@@ -184,11 +184,11 @@ exports.createUserMultiple = async () => {
 	const db = makeDB();
 	equal(
 		await db.addUser('qix'),
-		[true, [['pdb'], 0]]
+		[true, [['pdb'], 0]],
 	);
 	equal(
 		await db.addUser('qux'),
-		[true, [['pdb'], 1]]
+		[true, [['pdb'], 1]],
 	);
 };
 
@@ -196,11 +196,11 @@ exports.deleteUser = async () => {
 	const db = makeDB();
 	equal(
 		await db.addUser('qix'),
-		[true, [['pdb'], 0]]
+		[true, [['pdb'], 0]],
 	);
 	equal(
 		await db.deleteUser(0),
-		[true, [['pdb'], true]]
+		[true, [['pdb'], true]],
 	);
 };
 
@@ -208,7 +208,7 @@ exports.errorDeleteUnknownUser = async () => {
 	const db = makeDB();
 	equal(
 		await db.deleteUser(1337),
-		[false, [['pdb'], 'no such user ID']]
+		[false, [['pdb'], 'no such user ID']],
 	);
 };
 
@@ -216,7 +216,7 @@ exports.errorCreateSessionBadUser = async () => {
 	const db = makeDB();
 	equal(
 		await db.createSession(1337),
-		[false, [['pdb'], 'no such user ID']]
+		[false, [['pdb'], 'no such user ID']],
 	);
 };
 
@@ -224,11 +224,11 @@ exports.createSession = async () => {
 	const db = makeDB();
 	equal(
 		await db.addUser('qix'),
-		[true, [['pdb'], 0]]
+		[true, [['pdb'], 0]],
 	);
 	equal(
 		await db.createSession(0),
-		[true, [['pdb', 'mc'], 0]] // First PDB creates it, then MC caches it
+		[true, [['pdb', 'mc'], 0]], // First PDB creates it, then MC caches it
 	);
 	equal(
 		await db.destroySession(0),
@@ -237,11 +237,11 @@ exports.createSession = async () => {
 		// This is probably not how it should be designed in the real-world, but
 		// this is supposed to test the `return undefined` case, which has special
 		// semantics in Scaly (not an error, but not a 'hit'/result).
-		[true, [['pdb'], true]]
+		[true, [['pdb'], true]],
 	);
 	equal(
 		await db.deleteUser(0),
-		[true, [['pdb'], true]]
+		[true, [['pdb'], true]],
 	);
 };
 
@@ -249,7 +249,7 @@ exports.errorDestroyInvalidSession = async () => {
 	const db = makeDB();
 	equal(
 		await db.destroySession(1337),
-		[false, [['pdb'], 'invalid token']]
+		[false, [['pdb'], 'invalid token']],
 	);
 };
 
@@ -257,7 +257,7 @@ exports.errorQueryUIDInvalidToken = async () => {
 	const db = makeDB();
 	equal(
 		await db.getUID(1337),
-		[false, [['pdb'], 'invalid token']]
+		[false, [['pdb'], 'invalid token']],
 	);
 };
 
@@ -265,7 +265,7 @@ exports.errorQueryUsernameInvalidToken = async () => {
 	const db = makeDB();
 	equal(
 		await db.getUsername(1337),
-		[false, [['pdb'], 'invalid token']]
+		[false, [['pdb'], 'invalid token']],
 	);
 };
 
@@ -273,27 +273,27 @@ exports.queryUID = async () => {
 	const db = makeDB(2); // Serve 2 fetches from memory cache before invalidating (simulates TTL in the real-world)
 	equal(
 		await db.addUser('qix'),
-		[true, [['pdb'], 0]]
+		[true, [['pdb'], 0]],
 	);
 	equal(
 		await db.createSession(0),
-		[true, [['pdb', 'mc'], 0]]
+		[true, [['pdb', 'mc'], 0]],
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]] // Cache hit (1 left)
+		[true, [['mc'], 0]], // Cache hit (1 left)
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]] // Cache hit (0 left, next hits persistence)
+		[true, [['mc'], 0]], // Cache hit (0 left, next hits persistence)
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['pdb', 'mc'], 0]] // Hit persistence layer first, then cache
+		[true, [['pdb', 'mc'], 0]], // Hit persistence layer first, then cache
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]] // Value was re-warmed again
+		[true, [['mc'], 0]], // Value was re-warmed again
 	);
 };
 
@@ -301,18 +301,18 @@ exports.queryUsername = async () => {
 	const db = makeDB(2); // Serve 2 fetches from memory cache before invalidating (simulates TTL in the real-world)
 	equal(
 		await db.addUser('qix'),
-		[true, [['pdb'], 0]]
+		[true, [['pdb'], 0]],
 	);
 	equal(
 		await db.createSession(0),
-		[true, [['pdb', 'mc'], 0]]
+		[true, [['pdb', 'mc'], 0]],
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]] // Cache hit
+		[true, [['mc'], 0]], // Cache hit
 	);
 	equal(
 		await db.getUsername(0),
-		[true, [['pdb'], 'qix']]
+		[true, [['pdb'], 'qix']],
 	);
 };

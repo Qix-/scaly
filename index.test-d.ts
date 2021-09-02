@@ -33,7 +33,7 @@ const db = {
 
 	async * checkDBStatus(): ScalyResult<null> {
 		return this.users.size < this.maxUsers ? null : yield 'tooManyUsers';
-	}
+	},
 };
 
 const cache = {
@@ -50,12 +50,12 @@ const cache = {
 
 	async * checkCacheStatus(): ScalyResult<null> {
 		return null;
-	}
+	},
 };
 
 const api = scaly(db, cache);
 
-type ScalyAPI<Res, Err = string> = Promise<[true, Res] | [false, Err]>;
+type ScalyAPI<Res, Error_ = string> = Promise<[true, Res] | [false, Error_]>;
 
 expectType<(username: string) => ScalyAPI<number>>(api.registerUser);
 expectType<(id: number) => ScalyAPI<string>>(api.getUsername);

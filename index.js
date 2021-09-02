@@ -3,13 +3,14 @@ module.exports = (...layers) => {
 		throw new TypeError('layers must be an array');
 	}
 
+	// eslint-disable-next-line unicorn/no-array-reduce
 	const allOperations = new Set(layers.reduce(
 		(acc, layer) => acc.concat(Object.keys(layer))
 		, []));
 
 	const DB = {};
 
-	allOperations.forEach(op => {
+	for (const op of allOperations) {
 		DB[op] = async (...args) => {
 			const attemptedLayers = [];
 			const pendingGenerators = [];
@@ -34,7 +35,7 @@ module.exports = (...layers) => {
 						// Layer returned a value; propagate it up
 						// to all other layers who asked for it.
 						await Promise.all(pendingGenerators.map(
-							gen => gen.next(result)
+							gen => gen.next(result),
 						));
 
 						return [true, result];
@@ -70,10 +71,10 @@ module.exports = (...layers) => {
 			// a user cannot fix this case by changing the
 			// inputs, for example).
 			throw new Error(
-				`operation was not handled by any configured layers: ${op} (attempted layers: ${attemptedLayers.join(', ')})`
+				`operation was not handled by any configured layers: ${op} (attempted layers: ${attemptedLayers.join(', ')})`,
 			);
 		};
-	});
+	}
 
 	return DB;
 };
