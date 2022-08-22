@@ -1,6 +1,6 @@
 {
 	"name": "scaly",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Minimalistic, composable cache and database layering inspired by CPU caches",
 	"main": "index.js",
 	"types": "index.d.ts",
