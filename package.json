@@ -1,52 +1,57 @@
 {
-  "name": "scaly",
-  "version": "1.0.0",
-  "description": "Minimalistic, composable cache and database layering inspired by CPU caches",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "repository": "qix-/scaly",
-  "files": [
-    "index.js",
-    "index.d.ts",
-    "LICENSE"
-  ],
-  "scripts": {
-    "test": "best -v -I test.js && tsd && xo"
-  },
-  "keywords": [
-    "cache",
-    "layers",
-    "database",
-    "generators",
-    "fallback"
-  ],
-  "xo": {
-    "ignore": [
-      "./index.test-d.ts"
-    ],
-    "rules": {
-      "require-yield": [
-        0
-      ],
-      "unicorn/no-reduce": [
-        0
-      ],
-      "no-await-in-loop": [
-        0
-      ],
-      "operator-linebreak": [
-        0
-      ],
-      "unicorn/prefer-module": [
-        0
-      ]
-    }
-  },
-  "author": "Josh Junon (https://github.com/qix-)",
-  "license": "MIT",
-  "devDependencies": {
-    "@zeit/best": "0.7.3",
-    "tsd": "0.17.0",
-    "xo": "0.44.0"
-  }
+	"name": "scaly",
+	"version": "1.0.0",
+	"description": "Minimalistic, composable cache and database layering inspired by CPU caches",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"repository": "qix-/scaly",
+	"files": [
+		"index.js",
+		"index.d.ts",
+		"LICENSE"
+	],
+	"scripts": {
+		"format": "prettier --write --ignore-path .gitignore .",
+		"lint": "prettier --check --ignore-path .gitignore .",
+		"format:staged": "pretty-quick --staged",
+		"lint:commit": "commitlint -x @commitlint/config-conventional --edit",
+		"test": "best -v -I test.js && tsd"
+	},
+	"keywords": [
+		"cache",
+		"layers",
+		"database",
+		"generators",
+		"fallback"
+	],
+	"author": "Josh Junon (https://github.com/qix-)",
+	"license": "MIT",
+	"devDependencies": {
+		"@zeit/best": "0.7.3",
+		"tsd": "0.17.0",
+		"@commitlint/cli": "16.1.0",
+		"@commitlint/config-conventional": "16.0.0",
+		"@vercel/git-hooks": "1.0.0",
+		"prettier": "2.5.1",
+		"pretty-quick": "3.1.3"
+	},
+	"publishConfig": {
+		"access": "public",
+		"tag": "latest"
+	},
+	"git": {
+		"pre-commit": "format:staged",
+		"commit-msg": "lint:commit"
+	},
+	"prettier": {
+		"useTabs": true,
+		"semi": true,
+		"singleQuote": true,
+		"jsxSingleQuote": false,
+		"trailingComma": "none",
+		"arrowParens": "avoid",
+		"requirePragma": false,
+		"insertPragma": false,
+		"endOfLine": "lf"
+	}
 }

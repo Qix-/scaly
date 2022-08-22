@@ -26,7 +26,7 @@ function makePersistentDB() {
 		userCount: 0,
 		sessionCount: 0,
 		users: {},
-		sessions: {},
+		sessions: {}
 	};
 
 	return {
@@ -34,17 +34,17 @@ function makePersistentDB() {
 			return 'pdb';
 		},
 
-		async * createSession(uid) {
+		async *createSession(uid) {
 			const token = db.sessionCount++;
 			if (!(uid in db.users)) {
 				yield [['pdb'], 'no such user ID'];
 			}
 
-			db.sessions[token] = {uid};
+			db.sessions[token] = { uid };
 			return [['pdb'], token];
 		},
 
-		async * destroySession(token) {
+		async *destroySession(token) {
 			if (!(token in db.sessions)) {
 				yield [['pdb'], 'invalid token'];
 			}
@@ -53,13 +53,13 @@ function makePersistentDB() {
 			return [['pdb'], true];
 		},
 
-		async * getUID(token) {
+		async *getUID(token) {
 			return db.sessions[token]
 				? [['pdb'], db.sessions[token].uid]
 				: yield [['pdb'], 'invalid token'];
 		},
 
-		async * getUsername(token) {
+		async *getUsername(token) {
 			const session = db.sessions[token];
 			if (!session) {
 				yield [['pdb'], 'invalid token'];
@@ -73,24 +73,24 @@ function makePersistentDB() {
 			return [['pdb'], user.username];
 		},
 
-		async * addUser(username) {
+		async *addUser(username) {
 			if (!username || typeof username !== 'string') {
 				yield [['pdb'], 'invalid username (expected non-blank string)'];
 			}
 
 			const uid = db.userCount++;
-			db.users[uid] = {uid, username};
+			db.users[uid] = { uid, username };
 			return [['pdb'], uid];
 		},
 
-		async * deleteUser(uid) {
+		async *deleteUser(uid) {
 			if (!(uid in db.users)) {
 				yield [['pdb'], 'no such user ID'];
 			}
 
 			delete db.users[uid];
 			return [['pdb'], true];
-		},
+		}
 	};
 }
 
@@ -110,12 +110,12 @@ function makeMemoryCache(ttl) {
 
 	const cache = new Map();
 
-	const store = (k, v) => cache.set(k, {v, ttl});
+	const store = (k, v) => cache.set(k, { v, ttl });
 
 	const load = k => {
 		const record = cache.get(k);
 		if (record) {
-			if ((--record.ttl) === 0) {
+			if (--record.ttl === 0) {
 				cache.delete(k);
 			}
 
@@ -128,14 +128,14 @@ function makeMemoryCache(ttl) {
 			return 'mc';
 		},
 
-		async * createSession(uid) {
+		async *createSession(uid) {
 			const [trace, token] = yield;
 			const key = `token:uid:${token}`;
 			store(key, uid);
 			trace.push('mc');
 		},
 
-		async * destroySession(token) {
+		async *destroySession(token) {
 			const key = `token:uid:${token}`;
 			cache.delete(key);
 			// No return; hand off control to the
@@ -143,7 +143,7 @@ function makeMemoryCache(ttl) {
 			// here with the result.
 		},
 
-		async * getUID(token) {
+		async *getUID(token) {
 			const key = `token:uid:${token}`;
 			const value = load(key);
 			if (value !== undefined) {
@@ -153,82 +153,55 @@ function makeMemoryCache(ttl) {
 			const [trace, uid] = yield;
 			store(key, uid);
 			trace.push('mc');
-		},
+		}
 	};
 }
 
 const makeDB = memoryCacheTTL =>
 	// Order matters!
-	scaly(
-		makeMemoryCache(memoryCacheTTL || 1),
-		makePersistentDB(),
-	);
+	scaly(makeMemoryCache(memoryCacheTTL || 1), makePersistentDB());
 
 exports.createUser = async () => {
 	const db = makeDB();
-	equal(
-		await db.addUser('qix'),
-		[true, [['pdb'], 0]],
-	);
+	equal(await db.addUser('qix'), [true, [['pdb'], 0]]);
 };
 
 exports.errorCreateUserEmpty = async () => {
 	const db = makeDB();
-	equal(
-		await db.addUser(''),
-		[false, [['pdb'], 'invalid username (expected non-blank string)']],
-	);
+	equal(await db.addUser(''), [
+		false,
+		[['pdb'], 'invalid username (expected non-blank string)']
+	]);
 };
 
 exports.createUserMultiple = async () => {
 	const db = makeDB();
-	equal(
-		await db.addUser('qix'),
-		[true, [['pdb'], 0]],
-	);
-	equal(
-		await db.addUser('qux'),
-		[true, [['pdb'], 1]],
-	);
+	equal(await db.addUser('qix'), [true, [['pdb'], 0]]);
+	equal(await db.addUser('qux'), [true, [['pdb'], 1]]);
 };
 
 exports.deleteUser = async () => {
 	const db = makeDB();
-	equal(
-		await db.addUser('qix'),
-		[true, [['pdb'], 0]],
-	);
-	equal(
-		await db.deleteUser(0),
-		[true, [['pdb'], true]],
-	);
+	equal(await db.addUser('qix'), [true, [['pdb'], 0]]);
+	equal(await db.deleteUser(0), [true, [['pdb'], true]]);
 };
 
 exports.errorDeleteUnknownUser = async () => {
 	const db = makeDB();
-	equal(
-		await db.deleteUser(1337),
-		[false, [['pdb'], 'no such user ID']],
-	);
+	equal(await db.deleteUser(1337), [false, [['pdb'], 'no such user ID']]);
 };
 
 exports.errorCreateSessionBadUser = async () => {
 	const db = makeDB();
-	equal(
-		await db.createSession(1337),
-		[false, [['pdb'], 'no such user ID']],
-	);
+	equal(await db.createSession(1337), [false, [['pdb'], 'no such user ID']]);
 };
 
 exports.createSession = async () => {
 	const db = makeDB();
-	equal(
-		await db.addUser('qix'),
-		[true, [['pdb'], 0]],
-	);
+	equal(await db.addUser('qix'), [true, [['pdb'], 0]]);
 	equal(
 		await db.createSession(0),
-		[true, [['pdb', 'mc'], 0]], // First PDB creates it, then MC caches it
+		[true, [['pdb', 'mc'], 0]] // First PDB creates it, then MC caches it
 	);
 	equal(
 		await db.destroySession(0),
@@ -237,82 +210,55 @@ exports.createSession = async () => {
 		// This is probably not how it should be designed in the real-world, but
 		// this is supposed to test the `return undefined` case, which has special
 		// semantics in Scaly (not an error, but not a 'hit'/result).
-		[true, [['pdb'], true]],
+		[true, [['pdb'], true]]
 	);
-	equal(
-		await db.deleteUser(0),
-		[true, [['pdb'], true]],
-	);
+	equal(await db.deleteUser(0), [true, [['pdb'], true]]);
 };
 
 exports.errorDestroyInvalidSession = async () => {
 	const db = makeDB();
-	equal(
-		await db.destroySession(1337),
-		[false, [['pdb'], 'invalid token']],
-	);
+	equal(await db.destroySession(1337), [false, [['pdb'], 'invalid token']]);
 };
 
 exports.errorQueryUIDInvalidToken = async () => {
 	const db = makeDB();
-	equal(
-		await db.getUID(1337),
-		[false, [['pdb'], 'invalid token']],
-	);
+	equal(await db.getUID(1337), [false, [['pdb'], 'invalid token']]);
 };
 
 exports.errorQueryUsernameInvalidToken = async () => {
 	const db = makeDB();
-	equal(
-		await db.getUsername(1337),
-		[false, [['pdb'], 'invalid token']],
-	);
+	equal(await db.getUsername(1337), [false, [['pdb'], 'invalid token']]);
 };
 
 exports.queryUID = async () => {
 	const db = makeDB(2); // Serve 2 fetches from memory cache before invalidating (simulates TTL in the real-world)
+	equal(await db.addUser('qix'), [true, [['pdb'], 0]]);
+	equal(await db.createSession(0), [true, [['pdb', 'mc'], 0]]);
 	equal(
-		await db.addUser('qix'),
-		[true, [['pdb'], 0]],
-	);
-	equal(
-		await db.createSession(0),
-		[true, [['pdb', 'mc'], 0]],
+		await db.getUID(0),
+		[true, [['mc'], 0]] // Cache hit (1 left)
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]], // Cache hit (1 left)
+		[true, [['mc'], 0]] // Cache hit (0 left, next hits persistence)
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]], // Cache hit (0 left, next hits persistence)
+		[true, [['pdb', 'mc'], 0]] // Hit persistence layer first, then cache
 	);
 	equal(
 		await db.getUID(0),
-		[true, [['pdb', 'mc'], 0]], // Hit persistence layer first, then cache
-	);
-	equal(
-		await db.getUID(0),
-		[true, [['mc'], 0]], // Value was re-warmed again
+		[true, [['mc'], 0]] // Value was re-warmed again
 	);
 };
 
 exports.queryUsername = async () => {
 	const db = makeDB(2); // Serve 2 fetches from memory cache before invalidating (simulates TTL in the real-world)
-	equal(
-		await db.addUser('qix'),
-		[true, [['pdb'], 0]],
-	);
-	equal(
-		await db.createSession(0),
-		[true, [['pdb', 'mc'], 0]],
-	);
+	equal(await db.addUser('qix'), [true, [['pdb'], 0]]);
+	equal(await db.createSession(0), [true, [['pdb', 'mc'], 0]]);
 	equal(
 		await db.getUID(0),
-		[true, [['mc'], 0]], // Cache hit
+		[true, [['mc'], 0]] // Cache hit
 	);
-	equal(
-		await db.getUsername(0),
-		[true, [['pdb'], 'qix']],
-	);
+	equal(await db.getUsername(0), [true, [['pdb'], 'qix']]);
 };

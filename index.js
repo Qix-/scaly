@@ -4,9 +4,9 @@ module.exports = (...layers) => {
 	}
 
 	// eslint-disable-next-line unicorn/no-array-reduce
-	const allOperations = new Set(layers.reduce(
-		(acc, layer) => acc.concat(Object.keys(layer))
-		, []));
+	const allOperations = new Set(
+		layers.reduce((acc, layer) => acc.concat(Object.keys(layer)), [])
+	);
 
 	const DB = {};
 
@@ -27,16 +27,16 @@ module.exports = (...layers) => {
 				const gen = layer[op](...args);
 
 				// Run until first return/yield
-				const {value: result, done} = await gen.next();
+				const { value: result, done } = await gen.next();
 
 				// Did we return?
 				if (done) {
 					if (result !== undefined) {
 						// Layer returned a value; propagate it up
 						// to all other layers who asked for it.
-						await Promise.all(pendingGenerators.map(
-							gen => gen.next(result),
-						));
+						await Promise.all(
+							pendingGenerators.map(gen => gen.next(result))
+						);
 
 						return [true, result];
 					}
@@ -71,7 +71,9 @@ module.exports = (...layers) => {
 			// a user cannot fix this case by changing the
 			// inputs, for example).
 			throw new Error(
-				`operation was not handled by any configured layers: ${op} (attempted layers: ${attemptedLayers.join(', ')})`,
+				`operation was not handled by any configured layers: ${op} (attempted layers: ${attemptedLayers.join(
+					', '
+				)})`
 			);
 		};
 	}

@@ -10,6 +10,7 @@ functions. Yes, those really exist.
 ```console
 $ npm install --save scaly
 ```
+
 ## Usage
 
 Inspired by CPU caching, applications can build out data access layers for various
@@ -18,11 +19,11 @@ and facilitate the propagation of data back up the chain in the event of misses.
 
 That's a lot of buzzwords - here's an example problem that Scaly solves:
 
-- You have a database where an Employee ID number is associated with their First Name.
-- In the most common case, that name isn't going to be updated frequently - if ever.
-- Not only is it not updated frequently, but you have to look up the First Name often, hammering your database (MongoDB, for example).
-- You set up a key/value store (e.g. Redis) to cache the entries - maybe with an hour TTL by default.
-- You'd also like a per-service-instance memory cache with extremely low TTLs (in the order of seconds) for many subsequent requests, too.
+-   You have a database where an Employee ID number is associated with their First Name.
+-   In the most common case, that name isn't going to be updated frequently - if ever.
+-   Not only is it not updated frequently, but you have to look up the First Name often, hammering your database (MongoDB, for example).
+-   You set up a key/value store (e.g. Redis) to cache the entries - maybe with an hour TTL by default.
+-   You'd also like a per-service-instance memory cache with extremely low TTLs (in the order of seconds) for many subsequent requests, too.
 
 Your code might look something like this:
 
@@ -74,27 +75,27 @@ export async function getFirstName(eid) {
 
 That's a lot of code. Here are some problems:
 
-- This is **one** API call. There are a lot of branches, very unclear code,
-  and the repeating of e.g. the `setUsernameInMemcache()` duplicate call
-  can lead to bugs (especially if you inlined the `set/getUsernameInXXX()`
-  functions).
-- The control flow is hard to follow. This is a simple getter from multiple
-  data stores - anything more complicated will result in even more code.
-- It's not extensible. Adding a new data source requires surgical changes
-  to existing APIs that cannot be individually tested (easily, at least
-  without _extensive_ fragmentation).
-- Multiply this code by 100x. That's a conservative number of datastore
-  operations a medium-sized application might have.
-- Error handling is ambiguous - do you return an error value, or throw
-  an exception? How do I differentiate between user (request) error (e.g.
-  requesting an invalid ID) and an internal error (e.g. connection was
-  reset, invalid database credentials, etc.)?
-- RedisLabs just went down. There's a bug in the fault-tolerant Redis
-  implementation and now any attempts at getting cached values fail.
-  Our upstream outage just turned into a downstream outage. We need to
-  re-deploy without any Redis implementation and fall-back to just
-  memcache and mongo. How do you do this when you have 100x callsites
-  that need to be modified?
+-   This is **one** API call. There are a lot of branches, very unclear code,
+    and the repeating of e.g. the `setUsernameInMemcache()` duplicate call
+    can lead to bugs (especially if you inlined the `set/getUsernameInXXX()`
+    functions).
+-   The control flow is hard to follow. This is a simple getter from multiple
+    data stores - anything more complicated will result in even more code.
+-   It's not extensible. Adding a new data source requires surgical changes
+    to existing APIs that cannot be individually tested (easily, at least
+    without _extensive_ fragmentation).
+-   Multiply this code by 100x. That's a conservative number of datastore
+    operations a medium-sized application might have.
+-   Error handling is ambiguous - do you return an error value, or throw
+    an exception? How do I differentiate between user (request) error (e.g.
+    requesting an invalid ID) and an internal error (e.g. connection was
+    reset, invalid database credentials, etc.)?
+-   RedisLabs just went down. There's a bug in the fault-tolerant Redis
+    implementation and now any attempts at getting cached values fail.
+    Our upstream outage just turned into a downstream outage. We need to
+    re-deploy without any Redis implementation and fall-back to just
+    memcache and mongo. How do you do this when you have 100x callsites
+    that need to be modified?
 
 Along with a host of other issues.
 
@@ -157,27 +158,27 @@ try {
 
 So, what's happening here?
 
-- Each layer is comprised of the same (sub)set of API methods (in the example case, every layer
-  has a `getFirstNameByEid(eid)` method).
-- Each API method must be an async generator - i.e. `async *foo` (note the `*`). This allows both
-  the `await` and `yield` keywords - the former useful for application developers, and the latter
-  required for Scaly to work.
-- The layer first checks if it can resolve the request. If it can, it `return`s the result.
-- If it cannot resolve the request, but wants to be notified of the eventual result (e.g. for
-  inserting into the cache), it can choose to use the result of a `yield` expression, which
-  resolves to the result from a deeper layer.
-    - `yield` will not return if an error is `yield`ed or `throw`n by another layer. 
-    - The API method does NOT need to `return` in this case (the return value is ignored anyway).
-      This is what makes the single-line implementation for Redis's layer above work.
-- If it does _not_ care about the eventual result, it can simply `return;` or `return undefined;`.
-  Scaly will move on to the next layer without notifying this layer of a result later on.
-  In the event the very last (deepest) layer `return undefined`'s, an error is thrown - **all
-  API methods must resolve or error at some point**.
-- If the layer method wishes to raise a **recoverable or user error**, it should `yield err;` (where
-  `err` is anything your application needs - a string, an `Error` object, or something else).
-  **The function will not resume after the yield expression**, effectively acting like a `throw` statement.
-- If the layer method wishes to raise an **unrecoverable/exceptional error**, it should `throw`.
-  This should be reserved for unrecoverable (e.g. connection lost, bad DB credentials, etc.) errors.
+-   Each layer is comprised of the same (sub)set of API methods (in the example case, every layer
+    has a `getFirstNameByEid(eid)` method).
+-   Each API method must be an async generator - i.e. `async *foo` (note the `*`). This allows both
+    the `await` and `yield` keywords - the former useful for application developers, and the latter
+    required for Scaly to work.
+-   The layer first checks if it can resolve the request. If it can, it `return`s the result.
+-   If it cannot resolve the request, but wants to be notified of the eventual result (e.g. for
+    inserting into the cache), it can choose to use the result of a `yield` expression, which
+    resolves to the result from a deeper layer.
+    -   `yield` will not return if an error is `yield`ed or `throw`n by another layer.
+    -   The API method does NOT need to `return` in this case (the return value is ignored anyway).
+        This is what makes the single-line implementation for Redis's layer above work.
+-   If it does _not_ care about the eventual result, it can simply `return;` or `return undefined;`.
+    Scaly will move on to the next layer without notifying this layer of a result later on.
+    In the event the very last (deepest) layer `return undefined`'s, an error is thrown - **all
+    API methods must resolve or error at some point**.
+-   If the layer method wishes to raise a **recoverable or user error**, it should `yield err;` (where
+    `err` is anything your application needs - a string, an `Error` object, or something else).
+    **The function will not resume after the yield expression**, effectively acting like a `throw` statement.
+-   If the layer method wishes to raise an **unrecoverable/exceptional error**, it should `throw`.
+    This should be reserved for unrecoverable (e.g. connection lost, bad DB credentials, etc.) errors.
 
 `scaly(layer1, layer2, layerN)` returns a new object with all of the API methods between all layers.
 This means that if `layer1` has a `getFoo()` API method, and `layer2` has a `getBar()` method, the
@@ -199,4 +200,4 @@ converted to a `yield err`).
 
 # License
 
-Copyright &copy; 2020, Josh Junon. Released under the [MIT License](LICENSE).
+Copyright &copy; 2020-2022, Josh Junon. Released under the [MIT License](LICENSE).
